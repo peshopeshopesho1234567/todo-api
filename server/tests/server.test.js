@@ -9,7 +9,9 @@ const { User } = require("./../models/user");
 const todosTest = [
     {
         _id: new ObjectID(),
-        text: "First test todo"
+        text: "First test todo",
+        completed: true,
+        completedAt: 333
     },
     {
         _id: new ObjectID(),
@@ -146,4 +148,45 @@ describe("DELETE /todos/:id", () => {
             .expect(404)
             .end(done);
     });
-})
+});
+
+describe("PATCH /todos/:id", () => {
+
+    it("should update the todo", (done) => {
+
+        var hexId = todosTest[1]._id.toHexString();
+
+        request(app)
+            .patch(`/todos/${hexId}`)
+            .send({
+                completed: false
+            })
+            .expect(200)
+            .end((err, res) => {
+
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo.completed).toBe(false);
+                    done();
+                }).catch(e => done(e));
+            });
+    });
+
+    it("should clear complatedAt when todo is not completed", (done) => {
+        
+        var hexId = todosTest[0]._id.toHexString();
+
+        request(app)
+            .patch(`/todos/${hexId}`)
+            .send({
+                completed: false
+            })
+            .expect(200)
+            .end((err, res) => {
+
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo.completedAt).toNotExist();
+                    done();
+                }).catch(e => done(e));
+            });
+    });
+});
